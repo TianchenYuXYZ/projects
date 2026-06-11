@@ -51,10 +51,11 @@ cmake --build cpp/build --config Release -j 8
 # Verify cross-language parity and benchmark execution latency
 python scripts/07_bench_cpp.py
 
-
-## Architecture
-
 ```
+## Architecture
+```
+
+
 ┌────────────────────────────────── Python Training Pipeline ──────────────────────────────────┐
 │ sim/        MuJoCo + Franka Panda gripping environment, differential IK, scripted expert      │
 │ datagen/    DomainRandomizer + CLIPGuide + replay-based dataset construction generation     │
