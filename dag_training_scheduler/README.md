@@ -49,7 +49,7 @@ demo 一次运行演示四件事:
 | `scheduler/reaper.py` | `orphan_sweep()`:PENDING 且所有 parent DONE → 补发 | "DECR 和 XADD 非原子,sweep 从第一性原理重算 readiness 兜底" |
 | `scheduler/core.py` | `events:{dag}` lifecycle stream | "Observability:每个状态流转写事件流,dashboard 直接消费" |
 
-## 关键正确性论证(面试官会追问的)
+## 关键正确性论证
 
 **At-least-once + 幂等 = 实际 exactly-once 效果。** 投递可能重复
 (reaper 误判、crash 后重发),靠三层守卫吸收:
