@@ -1,0 +1,47 @@
+# Domain Randomization 配置:每个维度可独立开关,范围为均匀采样区间
+seed: 0
+n_train_scenes: 1500        # 训练集增广场景数
+frames_per_scene: 16        # 每个场景沿轨迹均匀抽帧数
+
+texture:
+  enabled: true
+  library_dir: assets/textures
+  surfaces: [table, floor]          # 随机替换纹理的表面
+  tint_range: [0.6, 1.4]            # RGB 乘性扰动
+
+cube:
+  rgba_jitter: 0.25                 # 目标方块颜色扰动幅度(围绕标称红色)
+
+light:
+  enabled: true
+  n_lights: [1, 2]
+  pos_x: [-0.6, 0.6]
+  pos_y: [-0.6, 0.6]
+  pos_z: [0.8, 1.6]
+  diffuse: [0.4, 1.0]
+  ambient: [0.05, 0.4]
+
+camera:
+  enabled: true
+  pos_jitter: 0.06                  # 相机位置抖动 (m)
+  lookat_jitter: 0.03               # 注视点抖动 (m)
+  fovy_jitter: 4.0                  # 视场角抖动 (deg)
+
+distractor:
+  enabled: true
+  n_range: [0, 4]                   # 干扰物数量
+  types: [box, sphere, cylinder]
+  size_range: [0.015, 0.045]
+  min_dist_to_cube: 0.10            # 拒绝采样: 离目标方块最小距离
+  min_dist_to_path: 0.08            # 离末端运动路径最小距离
+  region_x: [-0.25, 0.25]           # 桌面放置区域(相对桌心)
+  region_y: [-0.30, 0.30]
+
+clip_guide:
+  enabled: true
+  model: ViT-B-32
+  pretrained: laion2b_s34b_b79k
+  prompts:
+    table: "a flat tabletop surface texture, top-down view"
+    floor: "an indoor floor surface texture"
+  keep_ratio: 0.6                   # 每个表面保留 CLIP 得分前 60% 的纹理

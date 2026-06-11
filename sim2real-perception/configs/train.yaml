@@ -1,0 +1,33 @@
+seed: 0
+device: cuda
+
+backbone:
+  name: r3m_resnet50          # r3m_resnet50 | imagenet_resnet50 (R3M 下载失败时的回退)
+  weights_dir: weights
+
+lora:
+  enabled: true
+  rank: 8
+  alpha: 16                   # scale = alpha / rank
+  target_stages: [layer3, layer4]   # 注入 ResNet50 后两个 stage 的 1x1 conv
+
+filter:
+  enabled: true
+  recall: 0.95                # 阈值标定: demo 关键帧留一法 95% recall
+  n_keyframes: 12             # 每条 demo 取关键帧数作为 anchors
+
+policy:
+  hidden: [256, 256]
+  proprio_dim: 8              # 7 关节角 + 1 夹爪开度
+  action_dim: 7               # dpos(3) + drot(3) + grip(1), 均归一化到 [-1,1]
+
+optim:
+  batch_size: 128
+  lr: 1.0e-4
+  weight_decay: 1.0e-4
+  epochs: 20
+  loss: l1                    # l1 | mse
+  num_workers: 0              # 数据整载内存; Windows 下 >0 会按进程复制数据集
+
+baseline:                     # 对照组: frozen backbone + 单 demo BC(无 DR/过滤/LoRA)
+  epochs: 600                 # 单 demo 只有 1 batch/epoch, 给足梯度步数保证公平拟合

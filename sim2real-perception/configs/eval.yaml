@@ -1,0 +1,24 @@
+seed: 100                     # 与训练 seed 隔离, 测试场景不与训练重叠
+episodes_per_suite: 50
+max_steps: 160
+
+# 三档 unseen 测试套件, 难度递增
+suites:
+  L1_visual:                  # 新纹理 + 新光照
+    texture: true
+    light: true
+    camera: false
+    distractor: false
+  L2_clutter:                 # + 干扰物
+    texture: true
+    light: true
+    camera: false
+    distractor: true
+  L3_full_shift:              # + 相机偏移
+    texture: true
+    light: true
+    camera: true
+    distractor: true
+
+# 测试用纹理目录(与训练库不同源, 保证 unseen)
+test_texture_dir: assets/textures_test

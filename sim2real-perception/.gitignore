@@ -1,0 +1,19 @@
+# generated data / artifacts
+data/
+runs/
+deploy_bundle/
+assets/franka_emika_panda/
+assets/textures/
+weights/
+
+# python
+__pycache__/
+*.egg-info/
+.pytest_cache/
+
+# c++ build
+cpp/build/
+cpp/third_party/
+
+# misc
+*.tmp

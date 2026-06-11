@@ -1,0 +1,5 @@
+bundle_dir: deploy_bundle
+opset: 17
+image_size: 224
+# parity 验收: C++ 与 Python 推理动作最大绝对误差
+parity_tol: 1.0e-4

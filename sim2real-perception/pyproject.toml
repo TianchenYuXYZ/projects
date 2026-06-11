@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sim2real-perception"
+version = "0.1.0"
+description = "Robust Sim-to-Real perception pipeline: Domain Randomization + CLIP-guided generation + R3M feature filtering + LoRA fine-tuning"
+requires-python = ">=3.11"
+dependencies = [
+    "numpy",
+    "mujoco>=3.2.5",
+    "pillow",
+    "opencv-python",
+    "open_clip_torch",
+    "onnx>=1.17",
+    "onnxruntime>=1.20",
+    "pyyaml",
+    "gdown",
+    "tqdm",
+    "pytest",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
