@@ -77,7 +77,7 @@ def run_python_reference(parity_dir: Path, bundle_dir: Path) -> np.ndarray:
         feat = sess_p.run(None, {"image": x})[0]
         a = sess_a.run(None, {"feature": feat,
                               "proprio": np.array([prop], dtype=np.float32)})[0]
-        actions.append(a[0])
+        actions.append(np.clip(a[0], -1.0, 1.0))  # 与 C++ runtime 同步裁剪
     out = np.stack(actions)
     np.savetxt(parity_dir / "actions_py.csv", out, delimiter=",", fmt="%.8f")
     return out

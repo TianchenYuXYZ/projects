@@ -26,7 +26,8 @@ class PolicyAgent:
         x = x.float() / 255.0
         p = torch.from_numpy(proprio[None].astype(np.float32)).to(self.device)
         a = self.policy(self.backbone(x), p)
-        return a.squeeze(0).cpu().numpy()
+        # 线性策略头输出无界, 消费端统一裁剪 (与 C++ runtime 行为一致)
+        return np.clip(a.squeeze(0).cpu().numpy(), -1.0, 1.0)
 
 
 def run_suite(agent: PolicyAgent, scenes: list[SceneConfig],

@@ -60,6 +60,7 @@ class ManipSafetyEnv:
         self._cube_geom_id = self.model.geom("cube_geom").id
         self._cam_rgb_id = self.model.camera("cam0").id
         self._cam_depth_id = self.model.camera("wrist_depth").id
+        self._cam_wrist_id = self.model.camera("wrist_rgb").id
         self._key_id = self.model.key("start").id
         self._finger_adr = [
             self.model.joint(n).qposadr[0]
@@ -145,6 +146,13 @@ class ManipSafetyEnv:
 
     def render_rgb(self) -> np.ndarray:
         self._rgb_renderer.update_scene(self.data, camera=self._cam_rgb_id)
+        return self._rgb_renderer.render()
+
+    def render_wrist_rgb(self) -> np.ndarray:
+        """腕部 RGB 相机 (指缝方向横置, 近垂直俯视 TCP)。第二视角直接
+        编码方块相对夹爪的误差向量, 是侧视相机最后一厘米精度的补充。
+        与 wrist_depth (前下视, 安全走廊) 是两个独立挂点。"""
+        self._rgb_renderer.update_scene(self.data, camera=self._cam_wrist_id)
         return self._rgb_renderer.render()
 
     def render_depth(self) -> tuple[np.ndarray, np.ndarray, np.ndarray]:

@@ -26,6 +26,7 @@ optim:
   lr: 1.0e-4
   weight_decay: 1.0e-4
   epochs: 20
+  augment: true               # 批级 GPU 颜色增广 (image-space DR); baseline 不用
   loss: l1                    # l1 | mse
   num_workers: 0              # 数据整载内存; Windows 下 >0 会按进程复制数据集
 

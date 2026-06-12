@@ -32,9 +32,10 @@ THINK_PERIOD_S = 0.15           # serial 模式: 每 150ms 内联一次解码
 
 
 def run_loop(env: ManipSafetyEnv, mode: str, model, device, rig,
-             repeats: int) -> dict:
+             repeats: int, img_size: int = 128) -> dict:
     period = 1.0 / TARGET_HZ
-    img = torch.randn(1, 3, 96, 96, device=device)
+    img = torch.randn(1, 3, img_size, img_size, device=device)
+    wimg = torch.randn(1, 3, img_size, img_size, device=device)
     prop = torch.randn(1, 4, device=device)
 
     intervals = []
@@ -58,7 +59,7 @@ def run_loop(env: ManipSafetyEnv, mode: str, model, device, rig,
             if mode == "serial" and now >= next_think:
                 # 反模式: 解码同步阻塞控制线程
                 with torch.cuda.stream(rig.stream_main):
-                    model.decode_load(img, prop, repeats)
+                    model.decode_load(img, wimg, prop, repeats)
                 rig.stream_main.synchronize()
                 next_think = now + THINK_PERIOD_S
             env.tick()

@@ -187,14 +187,16 @@ def main() -> None:
     dist = float(np.linalg.norm(np.array([0.46, 0.01]) - env.ee_pos[:2]))
     print(f"      EE {env.ee_pos.round(3)}, 距障碍 {dist:.3f} m")
 
-    model = MiniVLA.from_config(cfg["vla"], cfg["env"]["render_size"]).to(device).eval()
+    rsz = int(cfg["env"]["render_size"])
+    model = MiniVLA.from_config(cfg["vla"], rsz).to(device).eval()
     # 负载规模标定: 单次 decode_load 墙钟
-    img = torch.randn(1, 3, 96, 96, device=device)
+    img = torch.randn(1, 3, rsz, rsz, device=device)
+    wimg = torch.randn(1, 3, rsz, rsz, device=device)
     prop = torch.randn(1, 4, device=device)
-    model.decode_load(img, prop, 4)
+    model.decode_load(img, wimg, prop, 4)
     torch.cuda.synchronize()
     t0 = time.perf_counter()
-    model.decode_load(img, prop, int(bcfg["decode_load_repeats"]))
+    model.decode_load(img, wimg, prop, int(bcfg["decode_load_repeats"]))
     torch.cuda.synchronize()
     load_iter_ms = (time.perf_counter() - t0) * 1e3
     print(f"      解码负载单轮 {load_iter_ms:.1f} ms (repeats="

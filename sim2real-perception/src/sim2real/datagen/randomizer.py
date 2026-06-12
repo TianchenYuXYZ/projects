@@ -34,9 +34,10 @@ class DomainRandomizer:
         if on("texture"):
             tcfg = c["texture"]
             lo, hi = tcfg["tint_range"]
+            plain_prob = float(tcfg.get("plain_prob", 0.0))
             for surf in tcfg["surfaces"]:
                 pool = self.texture_pool.get(surf, [])
-                if pool:
+                if pool and rng.random() >= plain_prob:
                     tex = str(pool[rng.integers(len(pool))])
                     setattr(scene, f"{surf}_texture", tex)
                 tint = tuple(np.clip(rng.uniform(lo, hi, 3), 0, 2)) + (1.0,)

@@ -2,7 +2,7 @@
 # 频率契约: 控制环 100Hz, 安全检查 ~33Hz, VLA 思考 ~6.7Hz (150ms/步, 显式建模)
 
 env:
-  render_size: 96            # RGB 观测分辨率 (VLA 输入)
+  render_size: 128           # RGB 观测分辨率 (VLA 输入, 侧视 + 腕视双视角)
   depth_size: 96             # 深度图分辨率 (安全监控输入)
   travel_ee_z: 0.30          # 巡航高度 (attachment_site, 指尖约低 0.11m)
   grasp_ee_z: 0.116          # 抓取高度
@@ -15,11 +15,13 @@ env:
 
 vla:
   # mini-RT2: CNN encoder -> causal transformer decoder, 动作 4 token x 256 bins
+  use_proprio: z_grip        # 仅 [z,grip]: 阻断 xy 因果混淆捷径, 保留抓取高度信号 (见 model.py)
   d_model: 192
   n_layers: 4
   n_heads: 4
   d_ff: 384
-  cnn_channels: [32, 64, 96, 128]
+  cnn_channels: [32, 64, 128]   # 3 层 stride-2: 96px -> 12x12 特征网格
+                                # (4 层时 6x6 网格 ~16px/格, 方块仅 4-6px, xy 伺服精度不足)
   dropout: 0.1
   think_ms: 150              # 推理延迟 (sim-time 模式显式建模; RT-2 实测 200-1000ms, 取小型化 VLA 量级)
   decision_period_ticks: 15  # = think_ms / control_dt, 思考完成即下一轮开始

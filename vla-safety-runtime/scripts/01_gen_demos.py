@@ -41,14 +41,14 @@ def collect_demo(env: ManipSafetyEnv, expert: ScriptedExpert,
         for _ in range(n_ticks):
             env.tick()
 
-    images, proprios, actions = [], [], []
+    images, wrist_images, proprios, actions = [], [], [], []
     dt = ticks_per_decision / CONTROL_HZ
     success = False
     for _ in range(max_decisions):
-        img = env.render_rgb()
+        images.append(env.render_rgb())
+        wrist_images.append(env.render_wrist_rgb())
         prop = env.proprio()
         cmd = expert.act(env.ee_pos, env.cube_pos, dt)
-        images.append(img)
         proprios.append(prop)
         actions.append(cmd.astype(np.float32))
         env.set_command(cmd)
@@ -61,6 +61,7 @@ def collect_demo(env: ManipSafetyEnv, expert: ScriptedExpert,
         return None
     return {
         "images": np.stack(images),
+        "wrist_images": np.stack(wrist_images),
         "proprios": np.stack(proprios),
         "actions": np.stack(actions).astype(np.float32),
         "success": True,

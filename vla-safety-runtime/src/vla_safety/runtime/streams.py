@@ -41,11 +41,12 @@ class DecodeLoadGenerator:
     """
 
     def __init__(self, model, device: torch.device, stream: torch.cuda.Stream,
-                 repeats: int, img_size: int = 96):
+                 repeats: int, img_size: int = 128):
         self.model = model
         self.stream = stream
         self.repeats = repeats
         self._img = torch.randn(1, 3, img_size, img_size, device=device)
+        self._wimg = torch.randn(1, 3, img_size, img_size, device=device)
         self._prop = torch.randn(1, 4, device=device)
         self._stop = threading.Event()
         self._thread: threading.Thread | None = None
@@ -65,6 +66,7 @@ class DecodeLoadGenerator:
     def _worker(self) -> None:
         while not self._stop.is_set():
             with torch.cuda.stream(self.stream):
-                self.model.decode_load(self._img, self._prop, self.repeats)
+                self.model.decode_load(self._img, self._wimg, self._prop,
+                                       self.repeats)
             self.stream.synchronize()
             self.iterations += 1

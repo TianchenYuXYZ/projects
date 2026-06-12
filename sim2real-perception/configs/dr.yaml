@@ -8,6 +8,8 @@ texture:
   library_dir: assets/textures
   surfaces: [table, floor]          # 随机替换纹理的表面
   tint_range: [0.6, 1.4]            # RGB 乘性扰动
+  plain_prob: 0.2                   # 每个表面以此概率不贴纹理(纯色+tint),
+                                    # 让训练分布覆盖 nominal 类外观
 
 cube:
   rgba_jitter: 0.25                 # 目标方块颜色扰动幅度(围绕标称红色)

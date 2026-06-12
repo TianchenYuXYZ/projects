@@ -1,5 +1,6 @@
 #include "s2r/runtime.hpp"
 
+#include <algorithm>
 #include <chrono>
 #include <stdexcept>
 
@@ -59,6 +60,10 @@ StepResult DeployRuntime::infer(std::vector<float>&& chw,
     r.action = policy_->run(
         {feature, proprio},
         {{1, manifest_.feature_dim}, {1, manifest_.proprio_dim}});
+    // 策略头是线性输出, 动作契约为 [-1,1], 部署端负责裁剪
+    for (auto& v : r.action) {
+        v = std::clamp(v, -1.0f, 1.0f);
+    }
     r.t_policy_us = us_since(t2);
 
     r.t_total_us = r.t_preprocess_us + r.t_perception_us + r.t_policy_us;

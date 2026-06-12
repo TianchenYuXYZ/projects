@@ -20,6 +20,24 @@ from sim2real.policy.bc import BCPolicy
 from sim2real.policy.dataset import BCDataset
 
 
+def augment_gpu(img: torch.Tensor) -> torch.Tensor:
+    """批级颜色增广 (GPU 张量操作, 几乎零开销): 亮度/对比度/通道增益/噪声/随机去色。
+
+    渲染帧之外再叠一层 image-space DR, 提升对 unseen 纹理与光照的鲁棒性。
+    """
+    B = img.shape[0]
+    dev = img.device
+    img = img * (0.7 + 0.6 * torch.rand(B, 1, 1, 1, device=dev))
+    mean = img.mean(dim=(1, 2, 3), keepdim=True)
+    img = (img - mean) * (0.7 + 0.6 * torch.rand(B, 1, 1, 1, device=dev)) + mean
+    img = img * (0.85 + 0.3 * torch.rand(B, 3, 1, 1, device=dev))
+    img = img + 0.02 * torch.randn_like(img)
+    gray = img.mean(dim=1, keepdim=True).expand_as(img)
+    mask = (torch.rand(B, 1, 1, 1, device=dev) < 0.1).float()
+    img = mask * gray + (1 - mask) * img
+    return img.clamp(0.0, 1.0)
+
+
 class Trainer:
     def __init__(self, cfg: dict):
         self.cfg = cfg
@@ -63,6 +81,7 @@ class Trainer:
 
         backbone.train(False)  # BN 统计保持冻结; LoRA 分支仍可训练
         policy.train(True)
+        use_aug = bool(ocfg.get("augment", False))
         history = []
         t0 = time.time()
         for ep in range(epochs):
@@ -71,6 +90,8 @@ class Trainer:
                 img = img.to(self.device, non_blocking=True)
                 prop = prop.to(self.device, non_blocking=True)
                 act = act.to(self.device, non_blocking=True)
+                if use_aug:
+                    img = augment_gpu(img)
                 feat = backbone(img)
                 pred = policy(feat, prop)
                 loss = loss_fn(pred, act)

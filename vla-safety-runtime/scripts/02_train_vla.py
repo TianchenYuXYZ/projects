@@ -30,9 +30,10 @@ from vla_safety.vla.tokenizer import ActionTokenizer
 def evaluate(model, loader, device, tokenizer) -> dict:
     model.eval()
     tot_loss, tot_correct, tot_tok, tot_mae, n = 0.0, 0, 0, 0.0, 0
-    for img, prop, tok in loader:
-        img, prop, tok = img.to(device), prop.to(device), tok.to(device)
-        logits = model(img, prop, tok)
+    for img, wimg, prop, tok in loader:
+        img, wimg, prop, tok = (img.to(device), wimg.to(device),
+                                prop.to(device), tok.to(device))
+        logits = model(img, wimg, prop, tok)
         loss = F.cross_entropy(logits.flatten(0, 1), tok.flatten())
         pred = logits.argmax(-1)
         tot_loss += loss.item() * tok.numel()
@@ -87,9 +88,10 @@ def main() -> None:
     for ep in range(epochs):
         model.train()
         ep_loss, ep_tok = 0.0, 0
-        for img, prop, tok in train_loader:
-            img, prop, tok = img.to(device), prop.to(device), tok.to(device)
-            logits = model(img, prop, tok)
+        for img, wimg, prop, tok in train_loader:
+            img, wimg, prop, tok = (img.to(device), wimg.to(device),
+                                    prop.to(device), tok.to(device))
+            logits = model(img, wimg, prop, tok)
             loss = F.cross_entropy(logits.flatten(0, 1), tok.flatten())
             opt.zero_grad(set_to_none=True)
             loss.backward()

@@ -95,7 +95,8 @@ def run_episode(env: ManipSafetyEnv, policy: VLAPolicy, cfg: dict,
             pending = None                           # arm 执行期: 在飞结果作废
         if pending is None and (rec is None or rec.phase == "window"):
             img = env.render_rgb()
-            cmd = policy.act(img, env.proprio())
+            wimg = env.render_wrist_rgb()
+            cmd = policy.act(img, wimg, env.proprio())
             decisions += 1
             pending = {"ready_at": t + think_ticks, "cmd": cmd}
 

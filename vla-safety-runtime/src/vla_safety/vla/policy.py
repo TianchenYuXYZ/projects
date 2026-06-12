@@ -20,15 +20,16 @@ class VLAPolicy:
         self.stream = stream            # 主推理 stream (GPU-A 语义)
 
     @torch.no_grad()
-    def act(self, image_u8: np.ndarray, proprio: np.ndarray) -> np.ndarray:
+    def act(self, image_u8: np.ndarray, wrist_u8: np.ndarray,
+            proprio: np.ndarray) -> np.ndarray:
         """贪心解码 -> (4,) 归一化指令。"""
-        img, prop = preprocess(image_u8, proprio, self.device)
+        img, wimg, prop = preprocess(image_u8, wrist_u8, proprio, self.device)
         if self.stream is not None:
             with torch.cuda.stream(self.stream):
-                tokens = self.model.generate(img, prop)
+                tokens = self.model.generate(img, wimg, prop)
             self.stream.synchronize()
         else:
-            tokens = self.model.generate(img, prop)
+            tokens = self.model.generate(img, wimg, prop)
         return self.tokenizer.decode(tokens[0].cpu().numpy()).astype(np.float64)
 
     @staticmethod

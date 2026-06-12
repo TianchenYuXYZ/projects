@@ -1,4 +1,9 @@
-"""BC 策略头: feature(2048) + proprio(8) -> action(7), tanh 输出 [-1,1]。"""
+"""BC 策略头: feature(2048) + proprio(8) -> action(7), 线性输出 + 消费端裁剪。
+
+不用 tanh: 专家标签 37% dpos / 100% 夹爪是饱和 ±1, tanh 渐近线让 L1
+永远差 ~0.15-0.2, 闭环里表现为 "比专家慢一拍", 状态逐步滑出数据流形
+(0% 成功率的直接根因)。线性头 + clip 可精确表达饱和动作。
+"""
 from __future__ import annotations
 
 import torch
@@ -21,4 +26,4 @@ class BCPolicy(nn.Module):
         self.action_dim = action_dim
 
     def forward(self, feature: torch.Tensor, proprio: torch.Tensor) -> torch.Tensor:
-        return torch.tanh(self.net(torch.cat([feature, proprio], dim=-1)))
+        return self.net(torch.cat([feature, proprio], dim=-1))
