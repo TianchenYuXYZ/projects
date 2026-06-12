@@ -47,6 +47,17 @@ class DomainRandomizer:
             base = np.array(scene.cube_rgba[:3])
             scene.cube_rgba = tuple(np.clip(base + rng.uniform(-jit, jit, 3), 0, 1)) + (1.0,)
 
+        # 方块初始位置随机化是 *状态* 维度, 不属于视觉开关: 训练与全部评测套件
+        # (含 nominal) 统一启用, 否则单点确定性评测出不来有意义的成功率
+        pos_jit = float(c.get("cube", {}).get("pos_jitter", 0.0))
+        if pos_jit > 0:
+            r = pos_jit * np.sqrt(rng.uniform(0, 1))
+            th = rng.uniform(0, 2 * np.pi)
+            scene.cube_pos = (
+                float(scene.cube_pos[0] + r * np.cos(th)),
+                float(scene.cube_pos[1] + r * np.sin(th)),
+            )
+
         if on("light"):
             lcfg = c["light"]
             n = int(rng.integers(lcfg["n_lights"][0], lcfg["n_lights"][1] + 1))

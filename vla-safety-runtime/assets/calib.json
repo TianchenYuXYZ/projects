@@ -1,0 +1,34 @@
+{
+  "ee_start": [
+    0.3069,
+    0.0,
+    0.5903
+  ],
+  "cam_world_pos": [
+    0.3269,
+    0.0,
+    0.7403
+  ],
+  "cam_local_pos": [
+    0.02,
+    0.0,
+    -0.15
+  ],
+  "cam_local_quat": [
+    -0.24184475,
+    0.66446298,
+    0.66446307,
+    -0.24184478
+  ],
+  "cam_tilt_deg": 50.0,
+  "calib_err": {
+    "pos": 2.5695524108471023e-09,
+    "rot": 6.673091412778831e-09
+  },
+  "selftest": {
+    "obstacle_points": 47,
+    "centroid_err_m": 0.017628072277933088
+  },
+  "torch": "2.12.0+cu126",
+  "cuda": "NVIDIA GeForce RTX 3060 Laptop GPU"
+}

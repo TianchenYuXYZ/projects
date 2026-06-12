@@ -9,14 +9,13 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from sim2real.common import PROJECT_ROOT, Trajectory, load_yaml
+from sim2real.common import PROJECT_ROOT, load_yaml
 from sim2real.datagen.builder import build_dataset
 from sim2real.datagen.randomizer import DomainRandomizer, build_texture_pool
 
 
 def main() -> None:
     cfg = load_yaml(PROJECT_ROOT / "configs" / "dr.yaml")
-    demo = Trajectory.load(PROJECT_ROOT / "data" / "demo.npz")
 
     clip_guide = None
     if cfg.get("clip_guide", {}).get("enabled", False):
@@ -30,12 +29,15 @@ def main() -> None:
         print(f"[pool] {surf}: {len(texs)} textures")
 
     randomizer = DomainRandomizer(cfg, texture_pool=pool)
+    ncfg = cfg.get("expert_noise", {})
     out_dir = PROJECT_ROOT / "data" / "dr_dataset"
     build_dataset(
-        demo, randomizer, out_dir,
+        randomizer, out_dir,
         n_scenes=int(cfg["n_train_scenes"]),
         frames_per_scene=int(cfg["frames_per_scene"]),
         seed=int(cfg["seed"]),
+        noise_std=float(ncfg.get("std", 0.0)),
+        noise_phases=tuple(ncfg.get("phases", [])),
     )
     print(f"dataset -> {out_dir}")
 

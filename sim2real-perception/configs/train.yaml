@@ -30,4 +30,5 @@ optim:
   num_workers: 0              # 数据整载内存; Windows 下 >0 会按进程复制数据集
 
 baseline:                     # 对照组: frozen backbone + 单 demo BC(无 DR/过滤/LoRA)
-  epochs: 600                 # 单 demo 只有 1 batch/epoch, 给足梯度步数保证公平拟合
+  epochs: 1000                # 单 demo 只有 1 batch/epoch, 给足梯度步数保证公平拟合
+  lr: 3.0e-4                  # 99 样本下 1e-4 欠拟合 (loss 卡 0.18), 提 lr 公平对照

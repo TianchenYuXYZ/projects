@@ -8,9 +8,11 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
+import numpy as np
 import torch
 
-from sim2real.common import PROJECT_ROOT, SceneConfig, load_yaml
+from sim2real.common import PROJECT_ROOT, load_yaml
+from sim2real.datagen.randomizer import DomainRandomizer
 from sim2real.eval.runner import PolicyAgent, run_suite
 from sim2real.eval.suites import make_suite_scenes
 from sim2real.perception.lora import inject_lora
@@ -54,7 +56,13 @@ def main() -> None:
         agent = load_agent(variant, run_dir, tcfg)
         results[variant] = {}
 
-        nominal = [SceneConfig.nominal() for _ in range(min(n_ep, 20))]
+        # nominal 套件: 视觉标称 + 方块位置抖动 (与训练同分布的状态随机,
+        # 全部视觉维度关闭) —— 单点确定性场景只会得到 0% 或 100%
+        nom_rand = DomainRandomizer(dcfg, texture_pool={})
+        nom_rng = np.random.default_rng(int(ecfg["seed"]))
+        all_off = {k: False for k in ("texture", "light", "camera", "distractor")}
+        nominal = [nom_rand.sample_scene(nom_rng, enable=all_off)
+                   for _ in range(min(n_ep, 20))]
         r = run_suite(agent, nominal, max_steps, desc=f"{variant}/nominal")
         results[variant]["nominal"] = r
         print(f"[{variant}] nominal: {r['success_rate']:.2%}")

@@ -1,0 +1,92 @@
+# VLA Runtime Safety 全局配置
+# 频率契约: 控制环 100Hz, 安全检查 ~33Hz, VLA 思考 ~6.7Hz (150ms/步, 显式建模)
+
+env:
+  render_size: 96            # RGB 观测分辨率 (VLA 输入)
+  depth_size: 96             # 深度图分辨率 (安全监控输入)
+  travel_ee_z: 0.30          # 巡航高度 (attachment_site, 指尖约低 0.11m)
+  grasp_ee_z: 0.116          # 抓取高度
+  pregrasp_dz: 0.10          # 预抓取悬停高度 (相对抓取高度)
+  episode_ticks: 1200        # 每集预算 12s
+  workspace:                 # 末端目标位置硬限幅
+    x: [0.15, 0.70]
+    y: [-0.35, 0.35]
+    z: [0.03, 0.55]
+
+vla:
+  # mini-RT2: CNN encoder -> causal transformer decoder, 动作 4 token x 256 bins
+  d_model: 192
+  n_layers: 4
+  n_heads: 4
+  d_ff: 384
+  cnn_channels: [32, 64, 96, 128]
+  dropout: 0.1
+  think_ms: 150              # 推理延迟 (sim-time 模式显式建模; RT-2 实测 200-1000ms, 取小型化 VLA 量级)
+  decision_period_ticks: 15  # = think_ms / control_dt, 思考完成即下一轮开始
+
+demos:
+  n_nominal: 220             # 标称起点专家示范
+  n_perturbed: 120           # 扰动起点示范 (覆盖 recovery 后的离轨状态)
+  decision_hz: 10            # 专家决策频率 (每 10 个控制 tick 一次)
+  cube_x: [0.42, 0.58]
+  cube_y: [-0.15, 0.15]
+  noise_v: 0.06              # 专家速度指令乘性噪声
+
+train:
+  batch_size: 192
+  epochs: 30
+  lr: 3.0e-4
+  weight_decay: 0.01
+  val_frac: 0.05
+  seed: 0
+  num_workers: 0
+
+safety:
+  period_ticks: 3            # 安全检查周期 (≈33Hz)
+  depth_fovy: 90.0
+  d_max: 1.2                 # 深度远裁剪 (m)
+  lookahead_s: 0.5           # 走廊时间视界: L = max(L_min, |v| * lookahead)
+  corridor_l_min: 0.06
+  corridor_radius: 0.055     # 扫掠胶囊半径 (夹爪外接半径 + margin)
+  conflict_min_points: 6     # 噪声鲁棒: 胶囊内至少 N 个深度点才算冲突
+  min_speed_trigger: 0.02    # 速度低于此值不触发 (freeze 不会自激)
+  goal_mask_radius: 0.06     # 目标物 (任务亲和) 屏蔽半径
+  self_mask_radius: 0.06     # 自体屏蔽胶囊半径
+  self_mask_extend: 0.12     # 自体屏蔽沿手轴向腕部上方的延伸长度
+  table_z_filter: 0.008      # 桌面点过滤
+  near_far_split: 0.10       # context 距离分桶阈值
+  front_half_angle_deg: 20   # context 方位分桶: |角| < 20° 为 front
+  max_triggers_per_ep: 10
+
+recovery:
+  arm_speed: 0.12            # 恢复动作速度 (m/s)
+  steps_per_arm: 6           # 每个 arm 的 token 步数
+  ticks_per_step: 8          # 每步保持的控制 tick 数 (共 480ms)
+  post_window_ticks: 60      # 奖励观察窗 W (0.6s)
+  progress_slack: 0.01       # 进度判据: dist(末) <= dist(触发) + slack
+
+bandit:
+  algo: ucb1                 # ucb1 | thompson | random | fixed
+  ucb_c: 1.2
+  fixed_arm: retreat_up      # algo=fixed 时使用
+  seed: 0
+
+eval:
+  n_episodes: 60
+  seed_base: 1000            # 第 i 集 seed = seed_base + i, 各 variant 共用同一场景序列
+  suites: [id_clean, ood_obstacle, ood_obstacle_visual]
+
+latency_bench:
+  n_trials: 1500
+  warmup: 100
+  decode_load_repeats: 40    # 模拟大 VLA 解码占满 GPU: decoder 堆叠重复次数
+  shm_name: "Local\\vla_safety_ring"
+  control_hz: 200
+  cpp_duration_s: 20
+
+paths:
+  panda_src: "../sim2real-perception/assets/franka_emika_panda"  # 相对 PROJECT_ROOT
+  panda_dst: "assets/franka_emika_panda"
+  demos_dir: "data/demos"
+  weights: "weights/vla_bc.pt"
+  results_dir: "results"

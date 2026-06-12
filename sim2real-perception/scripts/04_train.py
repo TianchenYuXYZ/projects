@@ -27,6 +27,8 @@ def main() -> None:
     cfg = load_yaml(PROJECT_ROOT / "configs" / "train.yaml")
     if args.variant == "baseline":
         cfg["lora"]["enabled"] = False
+        if "lr" in cfg.get("baseline", {}):
+            cfg["optim"]["lr"] = cfg["baseline"]["lr"]
     if args.rank is not None:
         cfg["lora"]["rank"] = args.rank
 

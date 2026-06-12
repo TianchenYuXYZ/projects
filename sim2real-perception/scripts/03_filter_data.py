@@ -27,14 +27,27 @@ CALIB_SEED_OFFSET = 99991
 
 def render_calibration_set(demo: Trajectory, kf: np.ndarray,
                            dr_cfg: dict) -> np.ndarray:
-    """同关键帧位姿在 K 个随机场景下重渲染。"""
+    """同关键帧位姿在 K 个随机场景下重渲染。
+
+    标定场景的方块必须固定在 demo 的位置: 回放的是 demo 的 qpos,
+    若方块被位置抖动挪走, 渲染出的 "抓空气" 帧语义已错, 会把 tau 拉低。
+    """
+    from sim2real.common import SceneConfig
+
     pool = build_texture_pool(dr_cfg, None)
     randomizer = DomainRandomizer(dr_cfg, texture_pool=pool)
     rng = np.random.default_rng(int(dr_cfg["seed"]) + CALIB_SEED_OFFSET)
-    env = ManipEnv(randomizer.sample_scene(rng))
+    nominal_cube = SceneConfig.nominal().cube_pos
+
+    def sample() -> SceneConfig:
+        s = randomizer.sample_scene(rng)
+        s.cube_pos = nominal_cube
+        return s
+
+    env = ManipEnv(sample())
     frames = []
     for _ in range(N_CALIB_SCENES):
-        env.reset(randomizer.sample_scene(rng))
+        env.reset(sample())
         frames.append(env.replay_render(demo.qpos, kf))
     env.close()
     return np.concatenate(frames)

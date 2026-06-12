@@ -1,0 +1,14 @@
+# 可再生资产 (00_setup_assets.py 从 sim2real-perception 复制并打补丁)
+assets/franka_emika_panda/
+
+# 数据与权重 (01/02 脚本再生)
+data/
+weights/*.pt
+
+# 构建产物
+cpp/build/
+__pycache__/
+*.egg-info/
+
+# 中间 CSV (报告里只留 json + 图)
+results/shm_*.csv

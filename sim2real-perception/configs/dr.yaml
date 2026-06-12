@@ -11,6 +11,12 @@ texture:
 
 cube:
   rgba_jitter: 0.25                 # 目标方块颜色扰动幅度(围绕标称红色)
+  pos_jitter: 0.035                 # 初始位置随机化半径 (m) —— 状态空间覆盖,
+                                    # 增广与评测共用; 没有它单 demo BC 无 funnel 可学
+
+expert_noise:                       # DART 风格噪声注入: 执行带噪、标签干净,
+  std: 0.15                         # 让数据包含 "偏离->修正" 的纠错样本
+  phases: [HOVER, DESCEND]          # 只在接近阶段注入, 抓取/提升阶段保持精确
 
 light:
   enabled: true
